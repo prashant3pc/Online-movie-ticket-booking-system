@@ -8,5 +8,5 @@ import { registerUser, loginUser } from "../controllers/userController";
 
 const router = express.Router();
 
-router.post("/api/users/register", protect, registerValidation, registerUser);
-router.post("/api/users/login", protect, loginValidation, loginUser);
+router.post("/api/users/register", registerValidation, registerUser);
+router.post("/api/users/login", loginValidation, loginUser);

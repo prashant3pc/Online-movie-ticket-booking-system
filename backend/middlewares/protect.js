@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 export const protect = asyncHandler(async (req, res, next) => {
   const header = req.headers.authorization;
   if (!header) {
-    req.status(400).json({
+    return res.status(400).json({
       succes: false,
       message: "Failed",
     });
