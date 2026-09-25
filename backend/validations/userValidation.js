@@ -1,4 +1,5 @@
 import { body, validationResult } from "express-validator";
+import asyncHandler from "express-async-handler";
 
 export const registerValidation = [
   body("name")
@@ -20,9 +21,9 @@ export const registerValidation = [
 
 export const loginValidation = [
   body("email")
-    .notEmail()
+    .isEmail()
     .withMessage("Please enter a valid email")
-    .isEmpty()
+    .notEmpty()
     .withMessage("Please enter your email"),
   body("password")
     .notEmpty()

@@ -22,7 +22,7 @@ export const createMovie = asyncHandler(async (req, res) => {
     posterUrl,
     trailerUrl,
   });
-  return res.status(200).json({
+  return res.status(201).json({
     success: true,
     message: "Movie created successfully",
     data: newMovie,
