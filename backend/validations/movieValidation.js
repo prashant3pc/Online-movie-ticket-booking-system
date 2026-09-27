@@ -1,5 +1,4 @@
 import { body, validationResult } from "express-validator";
-import asyncHandler from "express-async-handler";
 
 export const createMovieValidation = [
   body("title").notEmpty().withMessage("Please ente a title"),
@@ -31,7 +30,7 @@ export const updateMovieValidation = [
   body("trailerUrl").notEmpty().withMessage("Please ente a trailer"),
 ];
 
-export const validate = asyncHandler(async (req, res, next) => {
+export const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -41,4 +40,4 @@ export const validate = asyncHandler(async (req, res, next) => {
     });
   }
   next();
-});
+};

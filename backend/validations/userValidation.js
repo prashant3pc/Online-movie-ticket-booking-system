@@ -1,5 +1,4 @@
 import { body, validationResult } from "express-validator";
-import asyncHandler from "express-async-handler";
 
 export const registerValidation = [
   body("name")
@@ -32,7 +31,7 @@ export const loginValidation = [
     .withMessage("Please enter your password at least 8 charatcers"),
 ];
 
-export const validate = asyncHandler(async (req, res, next) => {
+export const validate = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -43,4 +42,4 @@ export const validate = asyncHandler(async (req, res, next) => {
     });
   }
   next();
-});
+};
