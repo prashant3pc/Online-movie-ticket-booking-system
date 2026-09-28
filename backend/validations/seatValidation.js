@@ -1,12 +1,12 @@
 import { body, validationResult } from "express-validator";
-const createValidation = [
+export const createSeatValidation = [
   body("category").notEmpty().withMessage("Please enter a category"),
   body("price").notEmpty().withMessage("Please enter a price"),
   body("seatNumber").notEmpty().withMessage("Please enter seat number"),
   body("screen").notEmpty().withMessage("Please select a screen"),
 ];
 
-const updateValidation = [
+export const updateSeatValidation = [
   body("category").notEmpty().withMessage("Please enter a category"),
   body("price").notEmpty().withMessage("Please enter a price"),
   body("seatNumber").notEmpty().withMessage("Please enter seat number"),
