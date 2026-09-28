@@ -2,6 +2,7 @@ import express from "express";
 import {
   createScreenValidation,
   updateScreenValidation,
+  validate,
 } from "../validations/screenValidation.js";
 import {
   createScreen,
@@ -12,6 +13,7 @@ import {
 } from "../controllers/screenController.js";
 import { protect } from "../middlewares/protect.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
+
 const router = express.Router();
 
 router.post(
@@ -19,6 +21,7 @@ router.post(
   protect,
   adminOrTheatreManager,
   createScreenValidation,
+  validate,
   createScreen,
 );
 router.get("/api/screen", protect, getScreens);
@@ -28,6 +31,7 @@ router.put(
   protect,
   adminOrTheatreManager,
   updateScreenValidation,
+  validate,
   updateScreen,
 );
 router.delete("/api/screen/:id", protect, adminOrTheatreManager, deleteScreen);

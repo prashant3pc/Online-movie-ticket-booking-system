@@ -9,6 +9,7 @@ import { protect } from "../middlewares/protect.js";
 import {
   createTheatreValidation,
   updateTheatreValidation,
+  validate,
 } from "../validations/theatreValidation.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
 import express from "express";
@@ -19,6 +20,7 @@ router.post(
   protect,
   adminOrTheatreManager,
   createTheatreValidation,
+  validate,
   createTheatre,
 );
 
@@ -30,6 +32,7 @@ router.put(
   protect,
   adminOrTheatreManager,
   updateTheatreValidation,
+  validate,
   updateTheatre,
 );
 

@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import Show from "../models/Show";
+import Show from "../models/Show.js";
 
 export const createShow = asyncHandler(async (req, res) => {
   const { movie, screen, startTime, endTime } = req.body;
@@ -11,17 +11,17 @@ export const createShow = asyncHandler(async (req, res) => {
   });
   return res.status(201).json({
     success: true,
-    meesage: "Show created successfully",
+    message: "Show created successfully",
     data: newShow,
   });
 });
 
 export const getShows = asyncHandler(async (req, res) => {
-  const show = await Show.find();
+  const shows = await Show.find();
   return res.status(200).json({
     success: true,
     message: "All your shows are here",
-    data: show,
+    data: shows,
   });
 });
 

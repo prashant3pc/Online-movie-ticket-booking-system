@@ -12,6 +12,7 @@ import {
   updateMovieValidation,
 } from "../validations/movieValidation.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
+import { validate } from "../validations/showValidation.js";
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.post(
   protect,
   adminOrTheatreManager,
   createMovieValidation,
+  validate,
   createMovie,
 );
 router.get("/api/movies", protect, getMovie);
@@ -29,6 +31,7 @@ router.put(
   protect,
   adminOrTheatreManager,
   updateMovieValidation,
+  validate,
   updateMovie,
 );
 router.delete("/api/movies/:id", protect, adminOrTheatreManager, deleteMovie);
