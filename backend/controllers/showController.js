@@ -57,6 +57,7 @@ export const getShow = asyncHandler(async (req, res) => {
 export const updateShow = asyncHandler(async (req, res) => {
   const { startTime, endTime } = req.body;
   const id = req.params.id;
+  //Find MY show.
   const show = await Show.findById(id);
   if (!show) {
     return res.status(404).json({
@@ -64,8 +65,9 @@ export const updateShow = asyncHandler(async (req, res) => {
       message: "Show not found",
     });
   }
+  //Find OTHER show that conflicts with MY show.
   const existingShow = await Show.findOne({
-    _id: { $ne: id },
+    _id: { $ne: id }, //"Find a show whose ID is NOT the ID of the show I'm currently updating."
     screen: show.screen,
     startTime: { $lt: new Date(endTime) },
     endTime: { $gt: new Date(startTime) },
