@@ -3,6 +3,19 @@ import Show from "../models/Show.js";
 
 export const createShow = asyncHandler(async (req, res) => {
   const { movie, screen, startTime, endTime } = req.body;
+
+  const existingShow = await Show.findOne({
+    screen: screen,
+    startTime: { $lt: new Date(endTime) },
+    endTime: { $gt: new Date(startTime) },
+  });
+
+  if (existingShow) {
+    return res.status(400).json({
+      success: false,
+      message: "Another show is already scheduled on this screen at this time",
+    });
+  }
   const newShow = await Show.create({
     movie,
     screen,
@@ -49,6 +62,19 @@ export const updateShow = asyncHandler(async (req, res) => {
     return res.status(404).json({
       success: false,
       message: "Show not found",
+    });
+  }
+  const existingShow = await Show.findOne({
+    _id: { $ne: id },
+    screen: show.screen,
+    startTime: { $lt: new Date(endTime) },
+    endTime: { $gt: new Date(startTime) },
+  });
+
+  if (existingShow) {
+    return res.status(400).json({
+      success: false,
+      message: "Another show is already scheduled on this screen at this time",
     });
   }
   const updatedShow = await Show.findByIdAndUpdate(
