@@ -26,3 +26,40 @@ export const getBookings = asyncHandler(async (req, res) => {
     data: bookings,
   });
 });
+
+export const getOneBooking = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const booking = await Booking.findById(id);
+  if (!booking) {
+    return res.status(404).json({
+      success: false,
+      message: "booking not found",
+    });
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Your single booking is here",
+  });
+});
+
+export const updateBooking = asyncHandler(async (req, res) => {
+  const { totalPrice, totalSeats, status } = req.body;
+  const id = req.params.id;
+  const booking = await Booking.findById(id);
+  if (!booking) {
+    return res.status(404).json({
+      success: false,
+      message: "Booking not found",
+    });
+  }
+  const updatedBooking = await Booking.findByIdAndUpdate(
+    id,
+    { totalPrice, totalSeats, status },
+    { new: true },
+  );
+  return res.status(200).json({
+    success: true,
+    message: "Booking updated successfully",
+    data: updatedBooking,
+  });
+});
