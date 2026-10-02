@@ -1,15 +1,14 @@
 import asyncHandler from "express-async-handler";
-import Booking from "../models/Booking";
+import Booking from "../models/Booking.js";
 
 export const createBooking = asyncHandler(async (req, res) => {
-  const { user, show, seats, totalPrice, totalSeats, status } = req.body;
+  const { user, show, seats, totalPrice, totalSeats } = req.body;
   const newBooking = await Booking.create({
     user,
     show,
     seats,
     totalPrice,
     totalSeats,
-    status,
   });
   return res.status(201).json({
     success: true,
@@ -39,6 +38,7 @@ export const getOneBooking = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Your single booking is here",
+    data: booking,
   });
 });
 

@@ -5,7 +5,9 @@ import theatreRoutes from "./routes/theatreRoutes.js";
 import screenRoutes from "./routes/screenRoutes.js";
 import seatRoutes from "./routes/seatRoutes.js";
 import showRoutes from "./routes/showRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
+
 const app = express();
 
 app.use(express.json());
@@ -16,6 +18,7 @@ app.use(theatreRoutes);
 app.use(screenRoutes);
 app.use(seatRoutes);
 app.use(showRoutes);
+app.use(bookingRoutes);
 app.get("/", (req, res) => {
   res.send("server is running");
 });

@@ -12,7 +12,7 @@ import {
   updateMovieValidation,
 } from "../validations/movieValidation.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
-import { validate } from "../validations/showValidation.js";
+import { validate } from "../validations/movieValidation.js";
 
 const router = express.Router();
 

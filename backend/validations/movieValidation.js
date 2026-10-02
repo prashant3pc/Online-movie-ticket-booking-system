@@ -1,7 +1,7 @@
 import { body, validationResult } from "express-validator";
 
 export const createMovieValidation = [
-  body("title").notEmpty().withMessage("Please ente a title"),
+  body("title").notEmpty().withMessage("Please enter a title"),
   body("description")
     .notEmpty()
     .withMessage("Please ente a description")
@@ -9,10 +9,10 @@ export const createMovieValidation = [
     .withMessage("Please enter at least 3 characters"),
   body("duration").notEmpty().withMessage("Please enter a duration"),
   body("director").notEmpty().withMessage("Please ente a director name"),
-  body("genres").notEmpty().withMessage("Please ente a genre"),
-  body("language").notEmpty().withMessage("Please ente a language"),
-  body("posterUrl").notEmpty().withMessage("Please ente a poster"),
-  body("trailerUrl").notEmpty().withMessage("Please ente a trailer"),
+  body("genres").notEmpty().withMessage("Please enter a genre"),
+  body("language").notEmpty().withMessage("Please enter a language"),
+  body("posterUrl").notEmpty().withMessage("Please enter a poster"),
+  body("trailerUrl").notEmpty().withMessage("Please enter a trailer"),
 ];
 
 export const updateMovieValidation = [
