@@ -11,21 +11,22 @@ export const createScreen = asyncHandler(async (req, res) => {
     });
   }
   if (existingTheatre.owner.toString() === req.user.id) {
+    const newScreen = await Screen.create({
+      name,
+      soundType,
+      theatre,
+    });
     return res.status(201).json({
       success: true,
       message: "Screen created successfully",
       data: newScreen,
     });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: "Access denied",
+    });
   }
-  const newScreen = await Screen.create({
-    name,
-    soundType,
-    theatre,
-  });
-  return res.status(400).json({
-    success: false,
-    message: "Access denied",
-  });
 });
 
 export const getScreens = asyncHandler(async (req, res) => {
