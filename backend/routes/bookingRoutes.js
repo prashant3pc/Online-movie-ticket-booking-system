@@ -12,7 +12,7 @@ import {
   getOneBooking,
   updateBooking,
 } from "../controllers/bookingController.js";
-import { adminOrTheatreManage } from "../middlewares/adminOrTheatreManager.js";
+import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
 
 const router = express.Router();
 

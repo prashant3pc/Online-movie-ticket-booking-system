@@ -3,6 +3,7 @@ import Theatre from "../models/Theatre.js";
 
 export const createTheatre = asyncHandler(async (req, res) => {
   const { name, city } = req.body;
+
   const newTheatre = await Theatre.create({
     name,
     city,
@@ -15,7 +16,7 @@ export const createTheatre = asyncHandler(async (req, res) => {
 });
 
 export const getTheatres = asyncHandler(async (req, res) => {
-  const theatre = await Theatre.find();
+  const theatre = await Theatre.find({ owner: req.user.id });
   return res.status(200).json({
     success: true,
     message: "All your theatre is here",
@@ -31,11 +32,17 @@ export const getOneTheatre = asyncHandler(async (req, res) => {
       success: false,
       message: "Theatre not found",
     });
-  } else {
+  }
+  if (theatre.owner.toString() === req.user.id) {
     return res.status(200).json({
       success: true,
       message: "Your theatre is here",
       data: theatre,
+    });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: "id doesnt match",
     });
   }
 });
@@ -48,6 +55,12 @@ export const updateTheatre = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Theatre not found",
+    });
+  }
+  if (theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Access denied",
     });
   }
   const updatedTheatre = await Theatre.findByIdAndUpdate(
@@ -69,6 +82,13 @@ export const deleteTheatre = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Theatre not found",
+    });
+  }
+
+  if (theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Access denied",
     });
   }
 

@@ -1,12 +1,30 @@
 import asyncHandler from "express-async-handler";
 import Screen from "../models/Screen.js";
+import Theatre from "../models/Theatre.js";
 export const createScreen = asyncHandler(async (req, res) => {
   const { name, soundType, theatre } = req.body;
-  const newScreen = await Screen.create({ name, soundType, theatre });
-  return res.status(201).json({
-    success: true,
-    message: "Screen created successfully",
-    data: newScreen,
+  const existingTheatre = await Theatre.findById(theatre);
+  if (!existingTheatre) {
+    return res.status(404).json({
+      success: false,
+      message: "Theatre not found",
+    });
+  }
+  if (existingTheatre.owner.toString() === req.user.id) {
+    return res.status(201).json({
+      success: true,
+      message: "Screen created successfully",
+      data: newScreen,
+    });
+  }
+  const newScreen = await Screen.create({
+    name,
+    soundType,
+    theatre,
+  });
+  return res.status(400).json({
+    success: false,
+    message: "Access denied",
   });
 });
 
@@ -27,23 +45,28 @@ export const getOneScreen = asyncHandler(async (req, res) => {
       success: false,
       message: "Screen not found",
     });
-  } else {
-    return res.status(200).json({
-      success: true,
-      message: "Your one screen is here",
-      data: screen,
-    });
   }
+  return res.status(200).json({
+    success: true,
+    message: "Your one screen is here",
+    data: screen,
+  });
 });
 
 export const updateScreen = asyncHandler(async (req, res) => {
   const { name, soundType } = req.body;
   const id = req.params.id;
-  const screen = await Screen.findById(id);
+  const screen = await Screen.findById(id).populate("theatre");
   if (!screen) {
     return res.status(404).json({
       success: false,
       message: "Screen not found",
+    });
+  }
+  if (screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Access denied",
     });
   }
   const updatedScreen = await Screen.findByIdAndUpdate(
@@ -60,11 +83,17 @@ export const updateScreen = asyncHandler(async (req, res) => {
 
 export const deleteScreen = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  const screen = await Screen.findById(id);
+  const screen = await Screen.findById(id).populate("theatre");
   if (!screen) {
     return res.status(404).json({
       success: false,
       message: "Screen not found",
+    });
+  }
+  if (screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Access denied",
     });
   }
   const deletedScreen = await Screen.findByIdAndDelete(id);

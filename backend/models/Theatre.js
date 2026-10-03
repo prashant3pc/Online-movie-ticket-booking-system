@@ -10,6 +10,11 @@ const theatreSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    owner: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );
