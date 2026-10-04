@@ -1,9 +1,23 @@
 import asyncHandler from "express-async-handler";
 import Show from "../models/Show.js";
-
+import Screen from "../models/Screen.js";
 export const createShow = asyncHandler(async (req, res) => {
   const { movie, screen, startTime, endTime } = req.body;
-
+  // Find the Screen and its Theatre
+  const existingScreen = await Screen.findById(screen).populate("theatre");
+  if (!existingScreen) {
+    return res.status(404).json({
+      success: false,
+      message: "Screen not found",
+    });
+  }
+  // Check whether the logged-in user owns the Theatre
+  if (existingScreen.screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Owner id not matched",
+    });
+  }
   const existingShow = await Show.findOne({
     screen: screen,
     startTime: { $lt: new Date(endTime) },
@@ -16,6 +30,7 @@ export const createShow = asyncHandler(async (req, res) => {
       message: "Another show is already scheduled on this screen at this time",
     });
   }
+
   const newShow = await Show.create({
     movie,
     screen,
@@ -58,7 +73,10 @@ export const updateShow = asyncHandler(async (req, res) => {
   const { startTime, endTime } = req.body;
   const id = req.params.id;
   //Find MY show.
-  const show = await Show.findById(id);
+  const show = await Show.findById(id).populate({
+    path: "screen",
+    populate: { path: "theatre" },
+  });
   if (!show) {
     return res.status(404).json({
       success: false,
@@ -79,6 +97,14 @@ export const updateShow = asyncHandler(async (req, res) => {
       message: "Another show is already scheduled on this screen at this time",
     });
   }
+
+  if (show.screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Owner id not matched",
+    });
+  }
+
   const updatedShow = await Show.findByIdAndUpdate(
     id,
     { startTime, endTime },
@@ -93,7 +119,10 @@ export const updateShow = asyncHandler(async (req, res) => {
 
 export const deleteShow = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  const show = await Show.findById(id);
+  const show = await Show.findById(id).populate({
+    path: "screen",
+    populate: { path: "theatre" },
+  });
   if (!show) {
     return res.status(404).json({
       success: false,
@@ -101,6 +130,12 @@ export const deleteShow = asyncHandler(async (req, res) => {
     });
   }
 
+  if (show.screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(400).json({
+      success: false,
+      message: "Owner id not matched",
+    });
+  }
   const deletedShow = await Show.findByIdAndDelete(id);
   return res.status(200).json({
     success: true,
