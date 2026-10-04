@@ -3,7 +3,6 @@ import Theatre from "../models/Theatre.js";
 
 export const createTheatre = asyncHandler(async (req, res) => {
   const { name, city } = req.body;
-
   const newTheatre = await Theatre.create({
     name,
     city,

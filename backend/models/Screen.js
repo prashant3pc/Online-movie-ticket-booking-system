@@ -15,11 +15,6 @@ export const screenSchema = new mongoose.Schema(
       ref: "Theatre",
       required: true,
     },
-    // user: {
-    //   type: mongoose.SchemaTypes.ObjectId,
-    //   ref: "User",
-    //   required: true,
-    // },
   },
   { timestamps: true },
 );
