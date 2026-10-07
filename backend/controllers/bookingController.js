@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler"; // Handles async errors automatically
 import Booking from "../models/Booking.js"; // Imports the Booking model
 import Show from "../models/Show.js"; // Imports the Show model
+import Seat from "../models/Seat.js";
 
 // Create a new booking
 export const createBooking = asyncHandler(async (req, res) => {
@@ -13,6 +14,27 @@ export const createBooking = asyncHandler(async (req, res) => {
       // Sends 404 if the show does not exist
       success: false, // Indicates the request failed
       message: "Show not found", // Explains the error
+    });
+  }
+  const existingSeats = await Seat.find({
+    _id: { $in: seats }, // Finds all Seat documents whose IDs are in the seats array
+  });
+
+  if (existingSeats.length !== seats.length) {
+    return res.status(404).json({
+      success: false, // Indicates failure
+      message: "One or more requested seats do not exist", // Explains the problem
+    });
+  }
+
+  const invalidSeat = existingSeats.find(
+    (seat) => seat.screen.toString() !== existingShow.screen.toString(), // Checks whether seat belongs to Show's screen
+  );
+
+  if (invalidSeat) {
+    return res.status(400).json({
+      success: false, // Indicates failure
+      message: "One or more seats do not belong to this show's screen", // Explains the problem
     });
   }
 
