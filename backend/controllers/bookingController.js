@@ -28,7 +28,8 @@ export const createBooking = asyncHandler(async (req, res) => {
   }
 
   const invalidSeat = existingSeats.find(
-    (seat) => seat.screen.toString() !== existingShow.screen.toString(), // Checks whether seat belongs to Show's screen
+    (existingSeat) =>
+      existingSeat.screen.toString() !== existingShow.screen.toString(), // Checks whether seat belongs to Show's screen
   );
 
   if (invalidSeat) {
@@ -50,7 +51,6 @@ export const createBooking = asyncHandler(async (req, res) => {
       message: "One or more selected seats are already booked",
     });
   }
-
   const newBooking = await Booking.create({
     // Creates the booking in MongoDB
     user: req.user.id, // Uses the logged-in user's ID
