@@ -38,6 +38,19 @@ export const createBooking = asyncHandler(async (req, res) => {
     });
   }
 
+  // Check if requested seats are already booked
+  const alreadyBooked = await Booking.findOne({
+    show: show,
+    seats: { $in: seats },
+  });
+
+  if (alreadyBooked) {
+    return res.status(400).json({
+      success: false,
+      message: "One or more selected seats are already booked",
+    });
+  }
+
   const newBooking = await Booking.create({
     // Creates the booking in MongoDB
     user: req.user.id, // Uses the logged-in user's ID
