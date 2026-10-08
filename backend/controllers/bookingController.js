@@ -133,6 +133,22 @@ export const updateBooking = asyncHandler(async (req, res) => {
     });
   }
 
+  if (booking.status !== "Pending") {
+    //“Only Pending bookings can be changed.”
+    return res.status(400).json({
+      success: false,
+      message: "cant be updated",
+    });
+  }
+
+  if (status !== "Confirmed" && status !== "Cancelled") {
+    //“The new status must be Confirmed or Cancelled.”
+    return res.status(400).json({
+      success: false,
+      message: "Reject it",
+    });
+  }
+
   const updatedBooking = await Booking.findByIdAndUpdate(
     // Updates the booking
     id, // Identifies which booking to update
