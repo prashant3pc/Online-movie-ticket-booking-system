@@ -11,6 +11,7 @@ import {
   getBookings,
   getOneBooking,
   updateBooking,
+  cancelBooking,
 } from "../controllers/bookingController.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
 
@@ -23,6 +24,7 @@ router.post(
   validate,
   createBooking,
 );
+router.post("/api/bookings/:id/cancel", protect, cancelBooking);
 router.get("/api/bookings", protect, adminOrTheatreManager, getBookings);
 router.get("/api/bookings/:id", protect, getOneBooking);
 router.put(

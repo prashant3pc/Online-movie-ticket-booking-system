@@ -1,205 +1,243 @@
-import asyncHandler from "express-async-handler"; // Handles async errors automatically
-import Booking from "../models/Booking.js"; // Imports the Booking model
-import Show from "../models/Show.js"; // Imports the Show model
+import asyncHandler from "express-async-handler";
+import Booking from "../models/Booking.js";
+import Show from "../models/Show.js";
 import Seat from "../models/Seat.js";
 
-// Create a new booking
+// CREATE A NEW BOOKING
 export const createBooking = asyncHandler(async (req, res) => {
-  const { show, seats, totalPrice, totalSeats } = req.body; // Gets booking data from request body
+  const { show, seats } = req.body; // Gets requested booking data from the client
 
-  const existingShow = await Show.findById(show); // Finds the show selected by the customer
+  const existingShow = await Show.findById(show); // Finds the selected show in MongoDB
 
   if (!existingShow) {
+    // Checks whether the show exists
     return res.status(404).json({
-      // Sends 404 if the show does not exist
-      success: false, // Indicates the request failed
+      success: false, // Indicates failure
       message: "Show not found", // Explains the error
     });
   }
+
   const existingSeats = await Seat.find({
-    _id: { $in: seats }, // Finds all Seat documents whose IDs are in the seats array
+    _id: { $in: seats }, // Finds database seats whose IDs appear in the requested seats array
   });
 
   if (existingSeats.length !== seats.length) {
+    // Checks whether every requested seat exists
     return res.status(404).json({
       success: false, // Indicates failure
-      message: "One or more requested seats do not exist", // Explains the problem
+      message: "One or more requested seats do not exist", // Explains the error
     });
   }
 
   const invalidSeat = existingSeats.find(
     (existingSeat) =>
-      existingSeat.screen.toString() !== existingShow.screen.toString(), // Checks whether seat belongs to Show's screen
+      existingSeat.screen.toString() !== existingShow.screen.toString(), // Finds a seat belonging to a different screen
   );
 
   if (invalidSeat) {
+    // Checks whether any selected seat belongs to another screen
     return res.status(400).json({
       success: false, // Indicates failure
       message: "One or more seats do not belong to this show's screen", // Explains the problem
     });
   }
 
-  // Check if requested seats are already booked
+  // CHECK EXISTING BOOKINGS
   const alreadyBooked = await Booking.findOne({
-    show: show,
-    seats: { $in: seats },
+    show: show, // Checks bookings for this particular show
+    seats: { $in: seats }, // Checks whether any requested seat overlaps an existing booking
+    status: { $ne: "Cancelled" }, // Ignores cancelled bookings when checking seat availability
   });
 
   if (alreadyBooked) {
+    // Rejects a seat already reserved by an active booking
     return res.status(400).json({
-      success: false,
+      success: false, // Indicates failure
       message: "One or more selected seats are already booked",
     });
   }
+  const totalSeats = seats.length; // booking price and seat count
+  const totalPrice = existingSeats.reduce(
+    (total, seat) => total + seat.price,
+    0,
+  );
+  if (new Set(seats).size !== seats.length) {
+    return res.status(400).json({
+      success: false,
+      message: "Duplicate seat IDs are not allowed",
+    });
+  }
+
+  // CREATE BOOKING IN DATABASE
   const newBooking = await Booking.create({
-    // Creates the booking in MongoDB
-    user: req.user.id, // Uses the logged-in user's ID
+    user: req.user.id, // Assigns the booking to the logged-in user
     show, // Stores the selected show ID
     seats, // Stores the selected seat IDs
-    totalPrice, // Stores the booking price
-    totalSeats, // Stores the number of seats
+    totalPrice, // Stores the price calculated by the backend
+    totalSeats, // Stores the number of selected seats
+    // status is not supplied, so Mongoose uses the schema default: "Pending"
   });
 
   return res.status(201).json({
-    // Sends successful creation response
     success: true, // Indicates success
-    message: "Booking created successfully", // Success message
+    message: "Booking created successfully", // Confirms creation
     data: newBooking, // Returns the created booking
   });
 });
 
-// Get all bookings
+// GET ALL BOOKINGS
+
 export const getBookings = asyncHandler(async (req, res) => {
-  const bookings = await Booking.find(); // Gets all bookings from MongoDB
+  const bookings = await Booking.find(); // Retrieves all bookings from MongoDB
 
   return res.status(200).json({
-    // Sends successful response
     success: true, // Indicates success
     message: "All bookings are here", // Success message
-    data: bookings, // Returns all bookings
+    data: bookings, // Returns the bookings
   });
 });
 
-// Get one booking
+// GET ONE BOOKING
+
 export const getOneBooking = asyncHandler(async (req, res) => {
-  const id = req.params.id; // Gets booking ID from URL
+  const id = req.params.id; // Gets the booking ID from the URL
 
   const booking = await Booking.findById(id); // Finds the booking by ID
 
   if (!booking) {
+    // Checks whether the booking exists
     return res.status(404).json({
-      // Sends 404 if booking does not exist
       success: false, // Indicates failure
       message: "Booking not found", // Explains the error
     });
   }
 
   return res.status(200).json({
-    // Sends successful response
     success: true, // Indicates success
     message: "Your single booking is here", // Success message
     data: booking, // Returns the booking
   });
 });
 
-// Update a booking
+// UPDATE BOOKING
+// Does not change status or price in this version.
+
 export const updateBooking = asyncHandler(async (req, res) => {
-  const { totalPrice, totalSeats, status } = req.body; // Gets update data from request body
-  const id = req.params.id; // Gets booking ID from URL
+  const id = req.params.id; // Gets the booking ID from the URL
 
   const booking = await Booking.findById(id).populate({
-    // Finds booking and loads related documents
-    path: "show", // Loads the Show document
+    path: "show", // Loads the related Show document
     populate: {
-      // Loads documents related to the Show
-      path: "screen", // Loads the Screen document
-      populate: { path: "theatre" }, // Loads the Theatre through the Screen
+      path: "screen", // Loads the Screen belonging to the Show
+      populate: { path: "theatre" }, // Loads the Theatre belonging to the Screen
     },
   });
 
   if (!booking) {
+    // Checks whether the booking exists
     return res.status(404).json({
-      // Sends 404 if booking does not exist
       success: false, // Indicates failure
       message: "Booking not found", // Explains the error
     });
   }
 
   if (booking.show.screen.theatre.owner.toString() !== req.user.id) {
+    // Checks whether the logged-in manager owns the booking's theatre
     return res.status(403).json({
-      // Sends 403 when manager does not own the theatre
       success: false, // Indicates failure
       message: "You do not own this booking's theatre", // Explains the authorization failure
     });
   }
 
-  if (booking.status !== "Pending") {
-    //“Only Pending bookings can be changed.”
-    return res.status(400).json({
-      success: false,
-      message: "cant be updated",
-    });
-  }
-
-  if (status !== "Confirmed" && status !== "Cancelled") {
-    //“The new status must be Confirmed or Cancelled.”
-    return res.status(400).json({
-      success: false,
-      message: "Reject it",
-    });
-  }
-
-  const updatedBooking = await Booking.findByIdAndUpdate(
-    // Updates the booking
-    id, // Identifies which booking to update
-    { totalPrice, totalSeats, status }, // Fields that can be updated
-    { new: true }, // Returns the updated document
-  );
-
-  return res.status(200).json({
-    // Sends successful response
-    success: true, // Indicates success
-    message: "Booking updated successfully", // Success message
-    data: updatedBooking, // Returns updated booking
+  return res.status(400).json({
+    // No general booking-update fields are defined yet
+    success: false, // Indicates that this operation is not currently supported
+    message: "General booking updates are not available", // Explains the restriction
   });
 });
 
-// Delete a booking
+// CANCELLATION
+// Only Pending bookings can be cancelled.
+
+export const cancelBooking = asyncHandler(async (req, res) => {
+  const id = req.params.id; // Gets the booking ID from the URL
+
+  const booking = await Booking.findById(id); // Finds the booking in MongoDB
+
+  if (!booking) {
+    // Checks whether the booking exists
+    return res.status(404).json({
+      success: false, // Indicates failure
+      message: "Booking not found", // Explains the error
+    });
+  }
+
+  if (booking.user.toString() !== req.user.id) {
+    // Ensures that only the customer who owns the booking can cancel it
+    return res.status(403).json({
+      success: false, // Indicates failure
+      message: "You cannot cancel another user's booking", // Explains the authorization failure
+    });
+  }
+
+  // BOOKING STATUS CHECK
+  if (booking.status !== "Pending") {
+    // Rejects cancellation if the current status is Confirmed or Cancelled
+    return res.status(400).json({
+      success: false, // Indicates failure
+      message: "Only pending bookings can be cancelled", // Explains the rule
+    });
+  }
+
+  // CANCELLATION: ACTUALLY UPDATES MONGODB
+  const cancelledBooking = await Booking.findByIdAndUpdate(
+    id, // Identifies which booking to update
+    { status: "Cancelled" }, // Changes the booking status to Cancelled
+    { new: true }, // Returns the updated booking document
+  );
+
+  return res.status(200).json({
+    success: true, // Indicates success
+    message: "Booking cancelled successfully", // Confirms cancellation
+    data: cancelledBooking, // Returns the updated booking
+  });
+});
+
+// DELETE BOOKING
+// Permanent deletion; keep separate from cancellation.
+
 export const deleteBooking = asyncHandler(async (req, res) => {
-  const id = req.params.id; // Gets booking ID from URL
+  const id = req.params.id; // Gets the booking ID from the URL
 
   const booking = await Booking.findById(id).populate({
-    // Finds booking and loads related documents
-    path: "show", // Loads the Show document
+    path: "show", // Loads the related Show
     populate: {
-      // Loads documents related to the Show
-      path: "screen", // Loads the Screen document
-      populate: { path: "theatre" }, // Loads the Theatre through the Screen
+      path: "screen", // Loads the related Screen
+      populate: { path: "theatre" }, // Loads the related Theatre
     },
   });
 
   if (!booking) {
+    // Checks whether the booking exists
     return res.status(404).json({
-      // Sends 404 if booking does not exist
       success: false, // Indicates failure
       message: "Booking not found", // Explains the error
     });
   }
 
   if (booking.show.screen.theatre.owner.toString() !== req.user.id) {
+    // Checks whether the logged-in manager owns the theatre
     return res.status(403).json({
-      // Sends 403 when manager does not own the theatre
       success: false, // Indicates failure
       message: "You do not own this booking's theatre", // Explains the authorization failure
     });
   }
 
-  const deletedBooking = await Booking.findByIdAndDelete(id); // Deletes the booking
+  const deletedBooking = await Booking.findByIdAndDelete(id); // Permanently deletes the booking from MongoDB
 
   return res.status(200).json({
-    // Sends successful response
     success: true, // Indicates success
-    message: "Booking deleted successfully", // Success message
-    data: deletedBooking, // Returns deleted booking
+    message: "Booking deleted successfully", // Confirms deletion
+    data: deletedBooking, // Returns the deleted booking
   });
 });
