@@ -1,6 +1,8 @@
 import asyncHandler from "express-async-handler";
 import Show from "../models/Show.js";
 import Screen from "../models/Screen.js";
+import Seat from "../models/Seat.js";
+import Booking from "../models/Booking.js";
 export const createShow = asyncHandler(async (req, res) => {
   const { movie, screen, startTime, endTime } = req.body;
   // Find the Screen and its Theatre
@@ -12,7 +14,7 @@ export const createShow = asyncHandler(async (req, res) => {
     });
   }
   // Check whether the logged-in user owns the Theatre
-  if (existingScreen.screen.theatre.owner.toString() !== req.user.id) {
+  if (existingScreen.theatre.owner.toString() !== req.user.id) {
     return res.status(400).json({
       success: false,
       message: "Owner id not matched",
@@ -66,6 +68,40 @@ export const getShow = asyncHandler(async (req, res) => {
     success: true,
     message: "Your show is here",
     data: show,
+  });
+});
+
+export const getShowSeatAvailability = asyncHandler(async (req, res) => {
+  const show = await Show.findById(req.params.id);
+
+  if (!show) {
+    return res.status(404).json({
+      success: false,
+      message: "Show not found",
+    });
+  }
+  const seats = await Seat.find({
+    screen: show.screen,
+  });
+  const bookings = await Booking.find({
+    show: show._id,
+    status: { $ne: "Cancelled" },
+  }).select("seats");
+  const bookedSeatIds = new Set(
+    bookings.flatMap((booking) => booking.seats.map((seat) => seat.toString())),
+  );
+  const seatAvailability = seats.map((seat) => ({
+    _id: seat._id,
+    category: seat.category,
+    seatNumber: seat.seatNumber,
+    price: seat.price,
+    availability: bookedSeatIds.has(seat._id.toString())
+      ? "Booked"
+      : "Available",
+  }));
+  return res.status(200).json({
+    success: true,
+    data: seatAvailability,
   });
 });
 

@@ -25,6 +25,7 @@ router.post(
 );
 router.get("/api/shows", protect, getShows);
 router.get("/api/shows/:id", protect, getShow);
+router.get("/api/shows/:id/seats", protect, getShowSeatAvailability);
 router.put(
   "/api/shows/:id",
   protect,

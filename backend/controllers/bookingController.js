@@ -56,7 +56,8 @@ export const createBooking = asyncHandler(async (req, res) => {
       message: "One or more selected seats are already booked",
     });
   }
-  const totalSeats = seats.length; // booking price and seat count
+  // booking price and seat count
+  const totalSeats = seats.length;
   const totalPrice = existingSeats.reduce(
     (total, seat) => total + seat.price,
     0,
