@@ -13,6 +13,7 @@ import {
 } from "../validations/showValidation.js";
 import { protect } from "../middlewares/protect.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
+import { getShowSeatAvailability } from "../controllers/showController.js";
 const router = express.Router();
 
 router.post(
