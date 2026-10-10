@@ -7,6 +7,14 @@ import Seat from "../models/Seat.js";
 export const createBooking = asyncHandler(async (req, res) => {
   const { show, seats } = req.body; // Gets requested booking data from the client
 
+  // Your duplicate check currently happens here
+  if (new Set(seats).size !== seats.length) {
+    return res.status(400).json({
+      success: false,
+      message: "Duplicate seat IDs are not allowed",
+    });
+  }
+
   const existingShow = await Show.findById(show); // Finds the selected show in MongoDB
 
   if (!existingShow) {
@@ -29,13 +37,13 @@ export const createBooking = asyncHandler(async (req, res) => {
     });
   }
 
+  // Checks whether any selected seat belongs to another screen
   const invalidSeat = existingSeats.find(
     (existingSeat) =>
       existingSeat.screen.toString() !== existingShow.screen.toString(), // Finds a seat belonging to a different screen
   );
 
   if (invalidSeat) {
-    // Checks whether any selected seat belongs to another screen
     return res.status(400).json({
       success: false, // Indicates failure
       message: "One or more seats do not belong to this show's screen", // Explains the problem
@@ -43,6 +51,7 @@ export const createBooking = asyncHandler(async (req, res) => {
   }
 
   // CHECK EXISTING BOOKINGS
+  // Checks whether any requested seat is already booked
   const alreadyBooked = await Booking.findOne({
     show: show, // Checks bookings for this particular show
     seats: { $in: seats }, // Checks whether any requested seat overlaps an existing booking
@@ -57,17 +66,12 @@ export const createBooking = asyncHandler(async (req, res) => {
     });
   }
   // booking price and seat count
+  // Calculates the number of seats and total price
   const totalSeats = seats.length;
   const totalPrice = existingSeats.reduce(
     (total, seat) => total + seat.price,
     0,
   );
-  if (new Set(seats).size !== seats.length) {
-    return res.status(400).json({
-      success: false,
-      message: "Duplicate seat IDs are not allowed",
-    });
-  }
 
   // CREATE BOOKING IN DATABASE
   const newBooking = await Booking.create({
@@ -87,10 +91,21 @@ export const createBooking = asyncHandler(async (req, res) => {
 });
 
 // GET ALL BOOKINGS
-
 export const getBookings = asyncHandler(async (req, res) => {
   const bookings = await Booking.find(); // Retrieves all bookings from MongoDB
 
+  if (req.user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "No access authorized",
+    });
+  }
+  if (req.user.role !== "theatre-manager") {
+    return res.status(403).json({
+      success: false,
+      message: "No access authorized",
+    });
+  }
   return res.status(200).json({
     success: true, // Indicates success
     message: "All bookings are here", // Success message
@@ -99,7 +114,6 @@ export const getBookings = asyncHandler(async (req, res) => {
 });
 
 // GET ONE BOOKING
-
 export const getOneBooking = asyncHandler(async (req, res) => {
   const id = req.params.id; // Gets the booking ID from the URL
 
@@ -110,6 +124,12 @@ export const getOneBooking = asyncHandler(async (req, res) => {
     return res.status(404).json({
       success: false, // Indicates failure
       message: "Booking not found", // Explains the error
+    });
+  }
+  if (booking.user.toString() !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      message: "You cannot access another user's booking",
     });
   }
 
