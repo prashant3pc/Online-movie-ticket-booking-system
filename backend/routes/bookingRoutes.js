@@ -14,7 +14,7 @@ import {
   cancelBooking,
 } from "../controllers/bookingController.js";
 import { adminOrTheatreManager } from "../middlewares/adminOrTheatreManager.js";
-
+import { adminOnly } from "../middlewares/adminOnly.js";
 const router = express.Router();
 
 router.post(
@@ -25,7 +25,7 @@ router.post(
   createBooking,
 );
 router.post("/api/bookings/:id/cancel", protect, cancelBooking);
-router.get("/api/bookings", protect, adminOrTheatreManager, getBookings);
+router.get("/api/bookings", protect, adminOnly, getBookings);
 router.get("/api/bookings/:id", protect, getOneBooking);
 router.put(
   "/api/bookings/:id",

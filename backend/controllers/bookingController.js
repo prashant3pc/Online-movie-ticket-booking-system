@@ -93,19 +93,6 @@ export const createBooking = asyncHandler(async (req, res) => {
 // GET ALL BOOKINGS
 export const getBookings = asyncHandler(async (req, res) => {
   const bookings = await Booking.find(); // Retrieves all bookings from MongoDB
-
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      success: false,
-      message: "No access authorized",
-    });
-  }
-  if (req.user.role !== "theatre-manager") {
-    return res.status(403).json({
-      success: false,
-      message: "No access authorized",
-    });
-  }
   return res.status(200).json({
     success: true, // Indicates success
     message: "All bookings are here", // Success message
