@@ -6,6 +6,7 @@ export const createTheatre = asyncHandler(async (req, res) => {
   const newTheatre = await Theatre.create({
     name,
     city,
+    owner: req.user.id,
   });
   return res.status(201).json({
     success: true,

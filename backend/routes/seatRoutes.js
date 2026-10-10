@@ -24,7 +24,7 @@ router.post(
   createSeat,
 );
 router.get("/api/seats", protect, getSeats);
-router.get("/api/seats/:id", protect, adminOrTheatreManager, getOneSeat);
+router.get("/api/seats/:id", protect, getOneSeat);
 router.put(
   "/api/seats/:id",
   protect,
