@@ -3,9 +3,17 @@ import Show from "../models/Show.js";
 import Screen from "../models/Screen.js";
 import Seat from "../models/Seat.js";
 import Booking from "../models/Booking.js";
+import Movie from "../models/Movie.js";
 export const createShow = asyncHandler(async (req, res) => {
   const { movie, screen, startTime, endTime } = req.body;
-  // Find the Screen and its Theatre
+  // Find the Movie, Screen and its Theatre
+  const existingMovie = await Movie.findById(movie);
+  if (!existingMovie) {
+    return res.status(404).json({
+      success: false,
+      message: "Movie doesnt exists",
+    });
+  }
   const existingScreen = await Screen.findById(screen).populate("theatre");
   if (!existingScreen) {
     return res.status(404).json({
@@ -119,6 +127,12 @@ export const updateShow = asyncHandler(async (req, res) => {
       message: "Show not found",
     });
   }
+  if (show.screen.theatre.owner.toString() !== req.user.id) {
+    return res.status(404).json({
+      success: false,
+      message: "owner not matched",
+    });
+  }
   //Find OTHER show that conflicts with MY show.
   const existingShow = await Show.findOne({
     _id: { $ne: id }, //"Find a show whose ID is NOT the ID of the show I'm currently updating."
@@ -133,14 +147,6 @@ export const updateShow = asyncHandler(async (req, res) => {
       message: "Another show is already scheduled on this screen at this time",
     });
   }
-
-  if (show.screen.theatre.owner.toString() !== req.user.id) {
-    return res.status(400).json({
-      success: false,
-      message: "Owner id not matched",
-    });
-  }
-
   const updatedShow = await Show.findByIdAndUpdate(
     id,
     { startTime, endTime },
