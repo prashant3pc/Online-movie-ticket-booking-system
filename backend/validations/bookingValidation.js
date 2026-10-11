@@ -6,17 +6,12 @@ export const createBookingValidation = [
     .notEmpty()
     .isArray()
     .withMessage("Please enter seats as an array"),
-  body("totalPrice").notEmpty().isNumeric().withMessage("Please enter a price"),
-  body("totalSeats")
-    .notEmpty()
-    .isNumeric()
-    .withMessage("Please enter a valid number of seats"),
 ];
 
-export const updateBookingValidation = [
-  body("totalPrice").notEmpty().withMessage("Please enter a price"),
-  body("totalSeats").notEmpty().withMessage("Please enter a seats"),
-];
+// export const updateBookingValidation = [
+//   body("totalPrice").notEmpty().withMessage("Please enter a price"),
+//   body("totalSeats").notEmpty().withMessage("Please enter a seats"),
+// ];
 
 export const validate = (req, res, next) => {
   const errors = validationResult(req);

@@ -2,7 +2,6 @@ import express from "express";
 import { protect } from "../middlewares/protect.js";
 import {
   createBookingValidation,
-  updateBookingValidation,
   validate,
 } from "../validations/bookingValidation.js";
 import {
@@ -31,7 +30,6 @@ router.put(
   "/api/bookings/:id",
   protect,
   adminOrTheatreManager,
-  updateBookingValidation,
   validate,
   updateBooking,
 );
